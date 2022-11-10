@@ -1,1 +1,1 @@
-# CMOP472-Mini-Project-2
+# COMP472 Mini Project 2
