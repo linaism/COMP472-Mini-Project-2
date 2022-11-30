@@ -4,8 +4,64 @@ class Search:
         self.heuristic = heuristic
 
     def h1(self):
+        h_cost = 0
+        for each car, check # cars blocking up, down, left, right
+        when theres a car, h_cost += 1
+        return cars with the h_cost added when arrive at the end of the board
+        for car in self.get_cars:
+            current_car = self.position
+            if car.orientation == 0:  # horizontal
+                # right
+                for rows in current row:
+                    if next car != self.car:
+                        h_cost += 1
+                        return get_cars.append(h_cost)
+                # left
+                for rows in current row[::-1]:
+                    if next car != self.car:
+                        h_cost += 1
+                        return get_cars.append(h_cost)
+            if car.orientation == 1:  # vertical
+                # down
+                for cols in current col:
+                    if next car != self.car:
+                        h_cost += 1
+                        return get_cars.append(h_cost)
+                # up
+                for cols in current col[::-1]:
+                    if next car != self.car:
+                        h_cost += 1
+                        return get_cars.append(h_cost)
 
     def h2(self):
+        h_cost = 0
+        for each car, check  # positions blocking up, down, left, right
+        when next position is not empty, h_cost += 1
+        return cars with the h_cost added when arrive at the end of the board
+        for car in self.get_cars:
+            current_car = self.position
+            if car.orientation == 0:  # horizontal
+                # right
+                for rows in current row:
+                    if next position != '.':
+                        h_cost += 1
+                        return get_cars.append(h_cost)
+                # left
+                for rows in current row[::-1]:
+                    if next position != '.':
+                        h_cost += 1
+                        return get_cars.append(h_cost)
+            if car.orientation == 1:  # vertical
+                # down
+                for cols in current col:
+                    if next position != '.':
+                        h_cost += 1
+                        return get_cars.append(h_cost)
+                # up
+                for cols in current col[::-1]:
+                    if next position != '.':
+                        h_cost += 1
+                        return get_cars.append(h_cost)
 
     def h3(self):
 
@@ -33,3 +89,10 @@ class Search:
 
 
     def greedy_best_first_search(self):
+        visited = []
+        openQueue = [[(start, 0)]]
+        closedQueue = []
+
+        # while loop
+
+
