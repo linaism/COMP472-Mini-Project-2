@@ -1,4 +1,5 @@
-class Search:
+class bestSearch:
+
     def __init__(self, node):
         self.node = node
         self.heuristic1 = []
@@ -84,30 +85,48 @@ class Search:
                         h_cost += 1
                         return self.heuristic2.append(h_cost)
 
+
+    def h2_getMin(self):
+        try:
+            min = 0
+            for i in range(len(self.heuristic2)):
+                if self.heuristic2[i] < self.heuristic2[min]:
+                    min = i
+            node = self.queue[min]
+            parent_node = self.parent[min]
+            del self.heuristic2[min]
+            del self.queue[min]
+            del self.parent[min]
+            return node, parent_node
+        except IndexError:
+            print()
+            exit()
+
     def h3(self):
 
     def h4(self):
 
-    def uniform_cost_search(self):
-        closed_list = []
-        queue = []  # Initialize a queue
-
-        closed_list.append(self.node)
-        queue.append(self.node)
-
-        while queue:
-            curr = queue.pop(0)
-            print(curr, end=" ")
-
-            children = self.node["state"].get_children()
-
-            for child in children:
-                if child not in closed_list:
-                    closed_list.append(child)
-                    queue.append(child)
-
-    def a_search(self):
+    def find_children(self):
+        x = parent[0]
+        y = parent[1]
 
 
 
+    from queue import PriorityQueue
 
+
+    def greedy_best_first_search(boardState, visited, ):
+        pq = PriorityQueue()
+        visited = []
+        openQueue = [[(start, 0)]]
+        closedQueue = []
+
+        while not pq.empty():
+            current = pq.h1_getMin()
+            parent = current[1]
+            current = current[0]
+
+            visited.insert(current, 0, parent)
+            if current == endState:
+                break
+            else:
