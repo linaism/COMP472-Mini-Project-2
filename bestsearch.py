@@ -39,22 +39,6 @@ class bestSearch:
                         h_cost += 1
                         return self.heuristic1.append(h_cost)
 
-    def h1_getMin(self):
-        try:
-            min = 0
-            for i in range(len(self.heuristic1)):
-                if self.heuristic1[i] < self.heuristic1[min]:
-                    min = i
-            node = self.queue[min]
-            parent_node = self.parent[min]
-            del self.heuristic1[min]
-            del self.queue[min]
-            del self.parent[min]
-            return node, parent_node
-        except IndexError:
-            print()
-            exit()
-
     def h2(self):
         h_cost = 0
         # for each car, check  # positions blocking up, down, left, right
@@ -84,23 +68,6 @@ class bestSearch:
                     if next position != '.':
                         h_cost += 1
                         return self.heuristic2.append(h_cost)
-
-
-    def h2_getMin(self):
-        try:
-            min = 0
-            for i in range(len(self.heuristic2)):
-                if self.heuristic2[i] < self.heuristic2[min]:
-                    min = i
-            node = self.queue[min]
-            parent_node = self.parent[min]
-            del self.heuristic2[min]
-            del self.queue[min]
-            del self.parent[min]
-            return node, parent_node
-        except IndexError:
-            print()
-            exit()
 
     def h3(self):
 
