@@ -4,35 +4,59 @@ import numpy as np
 class BoardState:
     def __init__(self, cars):
         self.cars = cars
-        self.board = self.get_board()
 
     def get_board(self):
         board = np.full((6, 6), '.')
-        for cars, params in self.cars.items():
-            board[params.rows, params.cols] = cars
+        for car, params in self.cars.items():
+            if params.orientation == 'h':
+                rows = [params.position[0]] * params.length
+                cols = list(range(params.position[1], params.position[1] + params.length))
+                board[rows, cols] = car
+            elif params.orientation == 'v':
+                rows = list(range(params.position[0], params.position[0] + params.length))
+                cols = [params.position[1]] * params.length
+                board[rows, cols] = car
         return board
 
     def get_children(self):
         children = []
+        board = self.get_board()
         for car, params in self.cars.items():
+            # get position of first car
             i = params.position[0]
             j = params.position[1]
-
-            # check left of horizontal cars
+            fuel = params.fuel
+            # Horizontal cars
             if params.orientation == 'h':
-                if j - 1 >= 0 and board[i][j - 1] == '.':
-                    # Add state
-                    child = cars.copy()
-                    child[car].position = [i, j - 1]
-                    child[car].fuel -= 1
-
-                # check right side of horizontal cars
-                j += child[car].length - 1
-
-                if j + 1 < 6 and board[i][j + 1] == '.':
-                # handle this case
-                i += params.length - 1
+                n = j - 1
+                # Check the left side
+                while n >= 0 and board[i, n] == '.' and fuel > 0:
+                    child = [car, "left", j-n]
+                    children.append(child)
+                    n -= 1
+                    fuel -= 1
+                # Check the right side
+                j += params.length - 1
+                n = j + 1
+                while n < 6 and board[i, n] == '.' and fuel > 0:
+                    child = [car, "right", n-j]
+                    children.append(child)
+                    n += 1
+                    fuel -= 1
+            # Vertical cars
             elif params.orientation == 'v':
-                if i - 1 >= 0 and board[i - 1][j] == '.':
-                # handle this case
-                if i + 1 < 6 and board[i - 1][j] == '.':
+                n = i - 1
+                # Check the top side
+                while n >= 0 and board[n, j] == '.' and fuel > 0:
+                    child = [car, "up", i-n]
+                    children.append(child)
+                    n -= 1
+                    fuel -= 1
+                i += params.length - 1
+                n = i + 1
+                while n < 6 and board[n, j] == '.' and fuel > 0:
+                    child = [car, "down", n-i]
+                    children.append(child)
+                    n += 1
+                    fuel -= 1
+        return np.array(children)
