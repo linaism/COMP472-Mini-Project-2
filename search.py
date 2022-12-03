@@ -47,11 +47,11 @@ class Search:
         self.heuristic = heuristic
 
     def h1(self):
-        #find ambulance and that becomes the current node
-        #for loop to check the next index after the ambulance
-        #if it is a car, h_cost +=1
-        #if current car == next car, skip
-        #if next position is empty, skip
+        # find ambulance and that becomes the current node
+        # for loop to check the next index after the ambulance
+        # if it is a car, h_cost +=1
+        # if current car == next car, skip
+        # if next position is empty, skip
         h_cost = 0
         current = self.head_node.cars["A"].length
         for row in np.board[2]:
@@ -59,7 +59,7 @@ class Search:
                 continue
             else:
                 h_cost += 1
-                return self.heuristic.append(h_cost)
+            return self.heuristic.append(h_cost)
 
     def h2(self):
         x = 5
@@ -73,7 +73,7 @@ class Search:
                 if cell != "." :
                     h_cost += 1
                     x -= 1
-                    return self.heuristic.append(h_cost)
+            return self.heuristic.append(h_cost)
 
     def h3(self):
         constant = 3
