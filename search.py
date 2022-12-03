@@ -61,19 +61,19 @@ class Search:
                 h_cost += 1
                 return self.heuristic.append(h_cost)
 
-     def h2(self):
-         x = 5
-         h_cost = 0
-         while x > 0 :
-             cell = np.board[2][x]
-             if cell == "A" :
-                 x = 0
-                 break
-             else :
-                 if cell != "." :
-                     h_cost += 1
-                     x -= 1
-            return self.heuristic.append(h_cost)
+    def h2(self):
+        x = 5
+        h_cost = 0
+        while x > 0 :
+            cell = np.board[2][x]
+            if cell == "A" :
+                x = 0
+                break
+            else :
+                if cell != "." :
+                    h_cost += 1
+                    x -= 1
+                    return self.heuristic.append(h_cost)
 
     def h3(self):
         constant = 3
@@ -145,5 +145,5 @@ class Search:
             current = current[0]
 
             visited.insert(current, 0, parent)
-            if current == endState:
+            if current == is_goal_state():
                 break
