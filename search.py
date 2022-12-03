@@ -1,5 +1,6 @@
 import numpy as np
 import copy
+from queue import PriorityQueue
 
 from boardstate import BoardState
 
@@ -55,6 +56,8 @@ class Search:
     def uniform_cost_search(self):
         closed_list = []
         open_queue = []
+        # open_queue = PriorityQueue()
+        # open_queue.put(cost+heuristic(state), node)
 
         closed_list.append(self.head_node)
         open_queue.append(self.head_node)
@@ -74,6 +77,7 @@ class Search:
             for state in children_states:
                 print("Any children...")
                 if is_goal_state(state):
+                    self.get_solution_path(node)
                     print("Solution found. Exiting")
                     break
                 if closed_list:
@@ -88,6 +92,12 @@ class Search:
                     child_node = {"state": state, "parent": node, "cost": node["cost"] + 1}
                     closed_list.append(child_node)
                     open_queue.append(child_node)
+
+    # def get_solution_path(node):
+        # node = [state, parent node, cost
+        # get the parent node and recursively call the function on that node to get its parent
+        # if node parent is empty, return
+
 
     # def a_search(self):
     #
