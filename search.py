@@ -1,5 +1,7 @@
 import numpy as np
+from boardstate import BoardState
 import copy
+
 from queue import PriorityQueue
 
 from boardstate import BoardState
@@ -39,18 +41,46 @@ def is_goal_state(state):
         after_A += 1
     return goal
 
-
 class Search:
     def __init__(self, head_node, heuristic):
         self.head_node = head_node
         self.heuristic = heuristic
 
-    # def h1(self):
-    #
-    # def h2(self):
-    #
-    # def h3(self):
-    #
+    def h1(self):
+        #find ambulance and that becomes the current node
+        #for loop to check the next index after the ambulance
+        #if it is a car, h_cost +=1
+        #if current car == next car, skip
+        #if next position is empty, skip
+        h_cost = 0
+        current = self.head_node.cars["A"].length
+        for row in np.board[2]:
+            if current + 1 == current or '.':
+                continue
+            else:
+                h_cost += 1
+                return self.heuristic.append(h_cost)
+
+     def h2(self):
+         x = 5
+         h_cost = 0
+         while x > 0 :
+             cell = np.board[2][x]
+             if cell == "A" :
+                 x = 0
+                 break
+             else :
+                 if cell != "." :
+                     h_cost += 1
+                     x -= 1
+            return self.heuristic.append(h_cost)
+
+    def h3(self):
+        constant = 3
+        for i in self.heuristic:
+            new_h = self.heuristic * constant
+            return self.heuristic.append(new_h)
+
     # def h4(self):
 
     def uniform_cost_search(self):
@@ -102,4 +132,18 @@ class Search:
     # def a_search(self):
     #
     #
-    # def greedy_best_first_search(self):
+    def greedy_best_first_search(self):
+        visited = []
+        pq = PriorityQueue()
+        start = self.head_node
+        pq.put((0, start))
+        visited[start] = True
+
+        while not pq.empty():
+            current = pq.get()[1]
+            parent = current[1]
+            current = current[0]
+
+            visited.insert(current, 0, parent)
+            if current == endState:
+                break

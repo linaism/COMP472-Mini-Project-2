@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="a60cde3f-1bea-46f9-a538-68fe5dc5ad98" name="Changes" comment="" />
+    <list default="true" id="a60cde3f-1bea-46f9-a538-68fe5dc5ad98" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bestsearch.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/search.py" beforeDir="false" afterPath="$PROJECT_DIR$/search.py" afterDir="false" />
+    </list>
+    <list id="bc0e624c-2873-4740-8ed8-aff066ee7a87" name="Changes by Martin" comment="">
+      <change beforePath="$PROJECT_DIR$/search.py" beforeDir="false" afterPath="$PROJECT_DIR$/search.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -28,6 +35,17 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="LineStatusTrackerManager">
+    <file path="$PROJECT_DIR$/search.py">
+      <ranges>
+        <range start1="1" end1="1" start2="1" end2="2" changelist="bc0e624c-2873-4740-8ed8-aff066ee7a87" />
+        <range start1="2" end1="2" start2="3" end2="4" changelist="bc0e624c-2873-4740-8ed8-aff066ee7a87" />
+        <range start1="40" end1="41" start2="42" end2="42" changelist="a60cde3f-1bea-46f9-a538-68fe5dc5ad98" />
+        <range start1="47" end1="53" start2="48" end2="83" changelist="a60cde3f-1bea-46f9-a538-68fe5dc5ad98" />
+        <range start1="104" end1="105" start2="134" end2="149" changelist="a60cde3f-1bea-46f9-a538-68fe5dc5ad98" />
+      </ranges>
+    </file>
+  </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
@@ -45,6 +63,7 @@
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "WebServerToolWindowFactoryState": "false",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
     "settings.editor.selected.configurable": "vcs.Git"
   }
 }]]></component>
@@ -56,7 +75,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1669784287465</updated>
-      <workItem from="1669784288837" duration="14071000" />
+      <workItem from="1669784288837" duration="19960000" />
     </task>
     <servers />
   </component>
@@ -76,5 +95,9 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/COMP472_Mini_Project_2$search.coverage" NAME="search Coverage Results" MODIFIED="1670050082371" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/COMP472_Mini_Project_2$game.coverage" NAME="game Coverage Results" MODIFIED="1670050087424" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
