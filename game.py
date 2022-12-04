@@ -4,11 +4,15 @@ import time
 
 
 class Game:
-    def __init__(self, game):
+    def __init__(self, game, game_id):
         self.game = game
         self.fuel = self.get_fuel()
         self.board = self.get_board()
         self.cars = self.get_cars()
+        self.states_visited = 0
+        self.solution_path = []
+        self.search_path = []
+        self.game_id = game_id
 
     # Get cars fuels given initial string input
     def get_fuel(self):
@@ -56,13 +60,110 @@ class Game:
                                                  "fuel": self.fuel[current_car]}
         return cars
 
-    def get_solution(self, node, i):
-        filename = "ucf-sol-" + str(i) + ".txt"
+    # UCS Search
+    def uniform_cost_search(self, head_node):
+        closed_list = []
+        open_queue = []
+
+        closed_list.append(head_node)
+        open_queue.append(head_node)
+
+        while open_queue:
+            node = open_queue.pop(0)
+            self.states_visited += 1
+            self.search_path.append(node)
+            # print(node)
+            if is_goal_state(node["state"]["board"]):
+                print("Solution found")
+                return node
+            children_states = get_children(node)
+
+            for child_state in children_states:
+                if closed_list:
+                    is_in_closed = False
+                    for visited_node in closed_list:
+                        if (visited_node["state"]["board"] == child_state["board"]).all():
+                            is_in_closed = True
+                    if not is_in_closed:
+                        child_node = {"state": child_state, "parent": node, "cost": node["cost"] + 1}
+                        closed_list.append(child_node)
+                        open_queue.append(child_node)
+                else:
+                    print("No solution found")
+                    return node
+        print("No solution found")
+
+    def write_solution(self, node, algo, i, runtime):
+        filename = algo + "-sol-" + str(i) + ".txt"
         f = open(filename, "w")
         f.write("Initial board configuration: ")
-        f.write(self.game)
-        
-        write_solution(node)
+        f.write(self.game + "\n\n")
+        b = self.game.split()[0]
+        for i in range(0, 35, 6):
+            f.write(b[i:i + 6] + "\n")
+        f.write("\nCar fuel available: ")
+        for car, qty in self.fuel.items():
+            f.write(car + ": " + str(qty) + ", ")
+
+        self.get_solution(node)
+        if self.solution_path:
+            f.write("\n\nRuntime: " + str(runtime) + " seconds")
+            f.write("\nSearch path length: " + str(self.states_visited))
+            f.write("\nSolution path length: " + str(len(self.solution_path)))
+            f.write("\nSolution path: ")
+            for move in self.solution_path:
+                f.write(move[0] + "; ")
+            f.write("\n\n")
+            for move in self.solution_path:
+                f.write(move[0] + "\t\t")
+                f.write(move[2] + " ")
+                for c in move[1]:
+                    f.write(c)
+                f.write("\n")
+            f.write("\n")
+            for i in range(6):
+                for j in range(6):
+                    f.write(node["state"]["board"][i, j])
+                f.write("\n")
+        else:
+            f.write("\n\nSorry, could not solve the puzzle as specififed.\nError: No solution found.")
+            f.write("\n\nRuntime: " + str(runtime) + " seconds")
+        f.close()
+
+    def get_solution(self, node):
+        if not node:
+            return
+
+        if not node["state"]["move"]:
+            return
+        self.get_solution(node["parent"])
+
+        car = node["state"]["move"][0]
+        fuel = node["state"]["cars"][car]["fuel"] if car in node["state"]["cars"] else 0
+        move = node["state"]["move"][0] + " " + node["state"]["move"][1] + " " + str(node["state"]["move"][2])
+
+        flattened_board = node["state"]["board"].flatten()
+        self.solution_path.append([move, flattened_board, str(fuel)])
+
+    def write_search_path(self, i):
+        # f(n) g(n) h(n) board fuels
+        filename = "ucs-search-" + str(i) + ".txt"
+        f = open(filename, "w")
+        for node in self.search_path:
+            cost = node["cost"]
+            board = node["state"]["board"]
+            f.write(str(cost) + " " + str(cost) + " 0 ")
+            for c in board.flatten():
+                f.write(c)
+            f.write(" ")
+            for car, params in node["state"]["cars"].items():
+                if params["fuel"] < 100:
+                    f.write(car + str(params["fuel"]) + " ")
+            f.write("\n")
+
+    def write_to_output_stats(self):
+        filename = "output_file.txt"
+        f = open(filename, "w")
 
     # Start the game
     def play(self):
@@ -72,69 +173,45 @@ class Game:
         print(self.board)
         print(self.cars)
 
+        # Uniform Cost Search
+        algorithm = "ucs"
         start = time.time()
-        final_node = uniform_cost_search(node)
+        final_node = self.uniform_cost_search(node)
         end = time.time()
-        print(F'Evaluation time: {round(end - start, 7)}s')
+        self.get_solution(node)
+        filename = "output_file.txt"
+        f = open(filename, "a")
+        f.write(str(self.game_id) + "\t\t\t\t" + "UCS" + "\t\t\t" + "NA" + "\t\t\t")
+        f.write(str(len(self.solution_path)) + "\t\t\t\t\t\t" + str(len(self.search_path)) + "\t\t\t\t\t" + str(
+            round(end - start, 3)) + "\n")
+        f.close()
+        # self.write_solution(final_node, algorithm, self.game_id, round(end - start, 3))
+        # self.write_search_path(self.game_id)
 
-        f = open("ucf-sol.txt", "w")
-        get_solution(final_node)
+        # TODO: Comment these back in once two other algoithms are implemented.
+        #  Changes can be made to include heuristic info if needed.
+        #  Make sure output files generates are right then comment out the write to file function calls
+        #  and replace with lines to write to output file for 50 inputs
+        # # A*
+        # algorithm = "a"
+        # start = time.time()
+        # final_node = self.uniform_cost_search(node)
+        # end = time.time()
+        # self.write_solution(final_node, algorithm, self.game_id, round(end - start, 3))
+        # self.write_search_path(self.game_id)
+        #
+        # # GBFS
+        # algorithm = "gbfs"
+        # start = time.time()
+        # final_node = self.uniform_cost_search(node)
+        # end = time.time()
+        # self.write_solution(final_node, algorithm, self.game_id, round(end - start, 3))
+        # self.write_search_path(self.game_id)
 
 
 def is_goal_state(board):
     return board[2, 5] == 'A'
 
-
-# UCS Search
-def uniform_cost_search(head_node):
-    closed_list = []
-    open_queue = []
-
-    closed_list.append(head_node)
-    open_queue.append(head_node)
-
-    while open_queue:
-        node = open_queue.pop(0)
-        # print(node)
-        if is_goal_state(node["state"]["board"]):
-            print("Solution found")
-            return node
-        children_states = get_children(node)
-
-        for child_state in children_states:
-            if closed_list:
-                is_in_closed = False
-                for visited_node in closed_list:
-                    if (visited_node["state"]["board"] == child_state["board"]).all():
-                        is_in_closed = True
-                if not is_in_closed:
-                    child_node = {"state": child_state, "parent": node, "cost": node["cost"] + 1}
-                    closed_list.append(child_node)
-                    open_queue.append(child_node)
-            else:
-                print("No solution found")
-                return node
-    print("No solution found")
-
-
-
-
-
-def write_solution(node):
-    if not node:
-        f = open("ucf-sol.txt", "a")
-        f.write("No solution found.")
-        f.close()
-        return
-
-    if not node["state"]["move"]:
-        return
-    get_solution(node["parent"])
-    print(node["state"]["board"])
-    f = open("ucf-sol.txt", "a")
-    move = node["state"]["move"][0] + " " + node["state"]["move"][1] + " " + str(node["state"]["move"][2])
-    f.write(move + ", ")
-    f.close()
 
 def get_children(node):
     state = node["state"]
@@ -164,13 +241,13 @@ def get_children(node):
             # Check the right side
             j_end = j + params["length"] - 1
             n = j_end + 1
+            # Verify if a blocking horizontal car can be removed
             if i == 2 and j_end == 5 and car != 'A':
                 params["fuel"] -= 1
                 move = [car, "removed", 0]
                 params["position"][1] += 1
                 new_cars = copy.deepcopy(cars)
                 removed_car = new_cars.pop(car)
-                print(removed_car)
                 new_board = get_board(new_cars)
                 state = {"board": new_board, "cars": new_cars, "move": move}
                 children.append(state)
@@ -181,7 +258,6 @@ def get_children(node):
                     params["position"][1] += 1
                     new_cars = copy.deepcopy(cars)
                     removed_car = new_cars.pop(car)
-                    print(removed_car)
                     new_board = get_board(new_cars)
                     state = {"board": new_board, "cars": new_cars, "move": move}
                     children.append(state)
@@ -236,15 +312,3 @@ def get_board(cars):
             cols = [params["position"][1]] * params["length"]
             board[rows, cols] = car
     return board
-
-
-def print_board(board):
-    print('   0 1 2 3 4 5')
-    print('   ------------')
-    i = 0
-    for row in board:
-        i += 1
-        print(str(i - 1) + '|', end=' ')
-        for c in row:
-            print(c, end=' ')
-        print()
