@@ -1,1 +1,0 @@
-Puzzle number	Algorithm	Heuristic	Length of solution	Length of search path	Execution time
