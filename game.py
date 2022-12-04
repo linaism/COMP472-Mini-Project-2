@@ -1,10 +1,11 @@
 import copy
 import numpy as np
 import time
+from queue import PriorityQueue
 
 
 class Game:
-    def __init__(self, game, game_id):
+    def __init__(self, game, game_id, algorithm, heuristic):
         self.game = game
         self.fuel = self.get_fuel()
         self.board = self.get_board()
@@ -13,6 +14,8 @@ class Game:
         self.solution_path = []
         self.search_path = []
         self.game_id = game_id
+        self.algorithm = algorithm
+        self.heuristic = heuristic
 
     # Get cars fuels given initial string input
     def get_fuel(self):
@@ -60,6 +63,64 @@ class Game:
                                                  "fuel": self.fuel[current_car]}
         return cars
 
+    def h1(self, state):
+        h_cost = 0
+        current_car = state["cars"]["A"]
+        current_posi = current_car["position"]
+        j = current_posi[1] + current_car["length"] - 1
+        board = state["board"]
+        for i in range(j, 6):
+            if i < 5 and board[2, i] != board[2, i + 1] and board[2, i + 1] != '.':
+                h_cost += 1
+        return h_cost
+
+    def h2(self, state):
+        h_cost = 0
+        current_car = state["cars"]["A"]
+        current_posi = current_car["position"]
+        j = current_posi[1] + current_car["length"]
+        board = state["board"]
+        for i in range(j, 6):
+            if board[2, i] != ".":
+                h_cost += 1
+        return h_cost
+
+    def h3(self, state):
+        constant = 3
+        h_cost = 0
+        current_car = state["cars"]["A"]
+        current_posi = current_car["position"]
+        j = current_posi[1] + current_car["length"] - 1
+        board = state["board"]
+        for i in range(j, 6):
+            if i < 5 and board[2, i] != board[2, i + 1] and board[2, i + 1] != '.':
+                h_cost += 1
+        new_h = h_cost * constant
+        return new_h
+
+    def h4(self, state):  # # vertical blocking vehicles
+        h_cost = 0
+        current_car = state["cars"]["A"]
+        current_posi = current_car["position"]
+        j = current_posi[1] + current_car["length"]
+        board = state["board"]
+        for i in range(j, 6):
+            if board[2, i] != '.' and state["cars"][board[2, i]]["orientation"] == 'v':
+                h_cost += 1
+        return h_cost
+
+    def get_heuristic(self, state):
+        if self.heuristic == "h1":
+            return self.h1(state)
+        elif self.heuristic == "h2":
+            return self.h2(state)
+        elif self.heuristic == "h3":
+            return self.h3(state)
+        elif self.heuristic == "h4":
+            return self.h4(state)
+        else:
+            return 0
+
     # UCS Search
     def uniform_cost_search(self, head_node):
         closed_list = []
@@ -93,8 +154,79 @@ class Game:
                     return node
         print("No solution found")
 
-    def write_solution(self, node, algo, i, runtime):
-        filename = algo + "-sol-" + str(i) + ".txt"
+    # Greedy Best First Search
+    def greedy_best_first_search(self, head_node):
+        closed_list = []
+        open_queue = []
+
+        open_queue.append((0, head_node))
+        closed_list.append(head_node)
+
+        while open_queue:
+            node_tuple = open_queue.pop(0)
+            node = node_tuple[1]
+            self.states_visited += 1
+            self.search_path.append(node)
+            if is_goal_state(node["state"]["board"]):
+                print("Solution found")
+                return node
+            children_states = get_children(node)
+
+            for child_state in children_states:
+                if closed_list:
+                    is_in_closed = False
+                    for visited_node in closed_list:
+                        if (visited_node["state"]["board"] == child_state["board"]).all():
+                            is_in_closed = True
+                    if not is_in_closed:
+                        child_node = {"state": child_state, "parent": node, "cost": node["cost"] + 1}
+                        closed_list.append(child_node)
+                        h = self.get_heuristic(child_state)
+                        open_queue.append((h, child_node))
+                        open_queue.sort(key=lambda x: x[0], reverse=True)
+                else:
+                    print("No solution found")
+                    return node
+        print("No solution found")
+
+    # A/A* (when using an admissible heuristic)
+    def a_algorithm(self, head_node):
+        closed_list = []
+        open_queue = []
+
+        open_queue.append((0, head_node))
+        closed_list.append(head_node)
+
+        while open_queue:
+            node_tuple = open_queue.pop(0)
+            node = node_tuple[1]
+            self.states_visited += 1
+            self.search_path.append(node)
+            if is_goal_state(node["state"]["board"]):
+                print("Solution found")
+                return node
+            children_states = get_children(node)
+
+            for child_state in children_states:
+                if closed_list:
+                    is_in_closed = False
+                    for visited_node in closed_list:
+                        if (visited_node["state"]["board"] == child_state["board"]).all():
+                            is_in_closed = True
+                    if not is_in_closed:
+                        child_node = {"state": child_state, "parent": node, "cost": node["cost"] + 1}
+                        closed_list.append(child_node)
+                        h = self.get_heuristic(child_state)
+                        cost = node["cost"]
+                        open_queue.append((h + cost, child_node))
+                        open_queue.sort(key=lambda x: x[0], reverse=True)
+                else:
+                    print("No solution found")
+                    return node
+        print("No solution found")
+
+    def write_solution(self, node, runtime):
+        filename = self.algorithm + "-sol-" + self.heuristic + ".txt"
         f = open(filename, "w")
         f.write("Initial board configuration: ")
         f.write(self.game + "\n\n")
@@ -145,14 +277,16 @@ class Game:
         flattened_board = node["state"]["board"].flatten()
         self.solution_path.append([move, flattened_board, str(fuel)])
 
-    def write_search_path(self, i):
+    def write_search_path(self):
         # f(n) g(n) h(n) board fuels
-        filename = "ucs-search-" + str(i) + ".txt"
+        filename = self.algorithm + "-search-" + self.heuristic + ".txt"
         f = open(filename, "w")
         for node in self.search_path:
+            h = self.get_heuristic(node["state"])
             cost = node["cost"]
+            fn = cost + h
             board = node["state"]["board"]
-            f.write(str(cost) + " " + str(cost) + " 0 ")
+            f.write(str(fn) + " " + str(cost) + " " + str(h))
             for c in board.flatten():
                 f.write(c)
             f.write(" ")
@@ -161,52 +295,52 @@ class Game:
                     f.write(car + str(params["fuel"]) + " ")
             f.write("\n")
 
-    def write_to_output_stats(self):
-        filename = "output_file.txt"
-        f = open(filename, "w")
-
     # Start the game
     def play(self):
         # Search algorithm
         state = {"board": self.board, "cars": self.cars, "move": []}
         node = {"state": state, "parent": {}, "cost": 0}
         print(self.board)
-        print(self.cars)
 
-        # Uniform Cost Search
-        algorithm = "ucs"
-        start = time.time()
-        final_node = self.uniform_cost_search(node)
-        end = time.time()
-        self.get_solution(node)
-        filename = "output_file.txt"
-        f = open(filename, "a")
-        f.write(str(self.game_id) + "\t\t\t\t" + "UCS" + "\t\t\t" + "NA" + "\t\t\t")
-        f.write(str(len(self.solution_path)) + "\t\t\t\t\t\t" + str(len(self.search_path)) + "\t\t\t\t\t" + str(
-            round(end - start, 3)) + "\n")
-        f.close()
-        # self.write_solution(final_node, algorithm, self.game_id, round(end - start, 3))
-        # self.write_search_path(self.game_id)
-
-        # TODO: Comment these back in once two other algoithms are implemented.
-        #  Changes can be made to include heuristic info if needed.
-        #  Make sure output files generates are right then comment out the write to file function calls
-        #  and replace with lines to write to output file for 50 inputs
-        # # A*
-        # algorithm = "a"
-        # start = time.time()
-        # final_node = self.uniform_cost_search(node)
-        # end = time.time()
-        # self.write_solution(final_node, algorithm, self.game_id, round(end - start, 3))
-        # self.write_search_path(self.game_id)
-        #
-        # # GBFS
-        # algorithm = "gbfs"
-        # start = time.time()
-        # final_node = self.uniform_cost_search(node)
-        # end = time.time()
-        # self.write_solution(final_node, algorithm, self.game_id, round(end - start, 3))
-        # self.write_search_path(self.game_id)
+        if self.algorithm == "ucs":
+            start = time.time()
+            final_node = self.uniform_cost_search(node)
+            end = time.time()
+            self.get_solution(node)
+            filename = "output_file.txt"
+            f = open(filename, "a")
+            f.write(str(self.game_id) + "\t\t\t\t" + "UCS" + "\t\t\t" + "NA" + "\t\t\t")
+            f.write(str(len(self.solution_path)) + "\t\t\t\t\t\t" + str(len(self.search_path)) + "\t\t\t\t\t" + str(
+                round(end - start, 3)) + "\n")
+            f.close()
+            # self.write_solution(final_node, round(end - start, 3))
+            # self.write_search_path()
+        elif self.algorithm == "a":
+            start = time.time()
+            final_node = self.a_algorithm(node)
+            end = time.time()
+            self.get_solution(node)
+            filename = "output_file.txt"
+            f = open(filename, "a")
+            f.write(str(self.game_id) + "\t\t\t\t" + "A" + "\t\t\t" + self.heuristic + "\t\t\t")
+            f.write(str(len(self.solution_path)) + "\t\t\t\t\t\t" + str(len(self.search_path)) + "\t\t\t\t\t" + str(
+                round(end - start, 3)) + "\n")
+            f.close()
+            # self.write_solution(final_node, round(end - start, 3))
+            # self.write_search_path()
+        elif self.algorithm == "gbfs":
+            start = time.time()
+            final_node = self.greedy_best_first_search(node)
+            end = time.time()
+            self.get_solution(node)
+            filename = "output_file.txt"
+            f = open(filename, "a")
+            f.write(str(self.game_id) + "\t\t\t\t" + "GBFS" + "\t\t\t" + self.heuristic + "\t\t\t")
+            f.write(str(len(self.solution_path)) + "\t\t\t\t\t\t" + str(len(self.search_path)) + "\t\t\t\t\t" + str(
+                round(end - start, 3)) + "\n")
+            f.close()
+            # self.write_solution(final_node, round(end - start, 3))
+            # self.write_search_path()
 
 
 def is_goal_state(board):
