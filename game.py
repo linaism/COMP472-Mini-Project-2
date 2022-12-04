@@ -1,6 +1,7 @@
 import copy
 import numpy as np
 import time
+from queue import PriorityQueue
 
 
 class Game:
@@ -93,8 +94,106 @@ class Game:
                     return node
         print("No solution found")
 
+    def h1(self, state):
+        # find ambulance and that becomes the current node
+        # for loop to check the next index after the ambulance
+        # if it is a car, h_cost +=1
+        # if current car == next car, skip
+        # if next position is empty, skip
+        h_cost = 0
+        current_car = state["cars"]["A"]
+        current_posi = current_car["position"]
+        j = current_posi + current_car["length"] - 1
+        board = state["board"]
+        for i in range(j, 6):
+            if i < 5 and board[2, i] == board[2, i+1] or '.':
+                continue
+            else:
+                h_cost += 1
+            return h_cost
+
+    def h2(self, state):
+        h_cost = 0
+        current_car = state["cars"]["A"]
+        current_posi = current_car["position"]
+        j = current_posi + current_car["length"] - 1
+        board = state["board"]
+        for i in range(j, 6):
+                if i < 5 and board[2, i] != ".":
+                    h_cost += 1
+                return h_cost
+
+    def h3(self, state):
+        constant = 3
+        h_cost = 0
+        current_car = state["cars"]["A"]
+        current_posi = current_car["position"]
+        j = current_posi + current_car["length"] - 1
+        board = state["board"]
+        for i in range(j, 6):
+            if i < 5 and board[2, i] == board[2, i + 1] or '.':
+                continue
+            else:
+                h_cost += 1
+
+            new_h = h_cost * constant
+            return new_h
+
+    def h4(self, state): # # vertical blocking vehicles
+        h_cost = 0
+        current_car = state["cars"]["A"]
+        current_posi = current_car["position"]
+        i = current_posi + current_car["length"] - 1
+        board = state["board"]
+        for j in range(i, 6):
+            if j < 5 and board[j, i] == board[j + 1, i] or '.':
+                continue
+            else:
+                h_cost += 1
+            return h_cost
+
+    # Greedy Best First Search
+    def greedy_best_first_search(self, head_node, heuristic):
+        closed_list = []
+        open_queue = PriorityQueue()
+
+        open_queue.put((0, head_node))
+        closed_list.append(head_node)
+
+        while not open_queue.empty():
+            node = open_queue.get()
+            self.states_visited += 1
+            self.search_path.append(node)
+            # print(node)
+            if is_goal_state(node["state"]["board"]):
+                print("Solution found")
+                return node
+            children_states = get_children(node)
+
+            for child_state in children_states:
+                if closed_list:
+                    is_in_closed = False
+                    for visited_node in closed_list:
+                        if (visited_node["state"]["board"] == child_state["board"]).all():
+                            is_in_closed = True
+                    if not is_in_closed:
+                        child_node = {"state": child_state, "parent": node, "cost": node["cost"] + 1}
+                        closed_list.append(child_node)
+                        if heuristic == "h1":
+                            open_queue.put((self.h1(child_state), child_node))
+                        if heuristic == "h2":
+                            open_queue.put((self.h2(child_state), child_node))
+                        if heuristic == "h3":
+                            open_queue.put((self.h3(child_state), child_node))
+                        if heuristic == "h4":
+                            open_queue.put((self.h4(child_state), child_node))
+                else:
+                    print("No solution found")
+                    return node
+        print("No solution found")
+
     def write_solution(self, node, algo, i, runtime):
-        filename = algo + "-sol-" + str(i) + ".txt"
+        filename = algo + "-" + i + "-sol-" + str(i) + ".txt"
         f = open(filename, "w")
         f.write("Initial board configuration: ")
         f.write(self.game + "\n\n")
@@ -145,9 +244,9 @@ class Game:
         flattened_board = node["state"]["board"].flatten()
         self.solution_path.append([move, flattened_board, str(fuel)])
 
-    def write_search_path(self, i):
+    def write_search_path(self, algo, i):
         # f(n) g(n) h(n) board fuels
-        filename = "ucs-search-" + str(i) + ".txt"
+        filename = algo + "-" + i + "-search-" + str(i) + ".txt"
         f = open(filename, "w")
         for node in self.search_path:
             cost = node["cost"]
@@ -185,8 +284,8 @@ class Game:
         f.write(str(len(self.solution_path)) + "\t\t\t\t\t\t" + str(len(self.search_path)) + "\t\t\t\t\t" + str(
             round(end - start, 3)) + "\n")
         f.close()
-        # self.write_solution(final_node, algorithm, self.game_id, round(end - start, 3))
-        # self.write_search_path(self.game_id)
+        self.write_solution(final_node, algorithm, self.game_id, round(end - start, 3))
+        self.write_search_path(self.game_id)
 
         # TODO: Comment these back in once two other algoithms are implemented.
         #  Changes can be made to include heuristic info if needed.
@@ -201,12 +300,12 @@ class Game:
         # self.write_search_path(self.game_id)
         #
         # # GBFS
-        # algorithm = "gbfs"
-        # start = time.time()
-        # final_node = self.uniform_cost_search(node)
-        # end = time.time()
-        # self.write_solution(final_node, algorithm, self.game_id, round(end - start, 3))
-        # self.write_search_path(self.game_id)
+        algorithm = "gbfs"
+        start = time.time()
+        final_node = self.greedy_best_first_search(node, heuristic="h1")
+        end = time.time()
+        self.write_solution(final_node, algorithm, self.game_id, round(end - start, 3))
+        self.write_search_path(self.game_id)
 
 
 def is_goal_state(board):
