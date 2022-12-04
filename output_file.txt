@@ -1,0 +1,4 @@
+Puzzle number	Algorithm	Heuristic	Length of solution	Length of search path	Execution time
+1				UCS			NA			0						154					0.898
+2				UCS			NA			0						1250					122.636
+3				UCS			NA			0						8					0.002
