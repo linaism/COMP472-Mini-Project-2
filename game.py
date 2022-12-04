@@ -56,6 +56,14 @@ class Game:
                                                  "fuel": self.fuel[current_car]}
         return cars
 
+    def get_solution(self, node, i):
+        filename = "ucf-sol-" + str(i) + ".txt"
+        f = open(filename, "w")
+        f.write("Initial board configuration: ")
+        f.write(self.game)
+        
+        write_solution(node)
+
     # Start the game
     def play(self):
         # Search algorithm
@@ -93,17 +101,11 @@ def uniform_cost_search(head_node):
             return node
         children_states = get_children(node)
 
-        # TODO: add case for car that leaves the board
-        # child_state = {"board": np.array of board,
-        # "cars": dict of cars with their params,
-        # "move": move executed to reach state}
         for child_state in children_states:
             if closed_list:
                 is_in_closed = False
                 for visited_node in closed_list:
-                    a1 = visited_node["state"]["board"]
-                    a2 = child_state["board"]
-                    if (a1 == a2).all():
+                    if (visited_node["state"]["board"] == child_state["board"]).all():
                         is_in_closed = True
                 if not is_in_closed:
                     child_node = {"state": child_state, "parent": node, "cost": node["cost"] + 1}
@@ -111,12 +113,24 @@ def uniform_cost_search(head_node):
                     open_queue.append(child_node)
             else:
                 print("No solution found")
+                return node
+    print("No solution found")
 
 
-def get_solution(node):
+
+
+
+def write_solution(node):
+    if not node:
+        f = open("ucf-sol.txt", "a")
+        f.write("No solution found.")
+        f.close()
+        return
+
     if not node["state"]["move"]:
         return
     get_solution(node["parent"])
+    print(node["state"]["board"])
     f = open("ucf-sol.txt", "a")
     move = node["state"]["move"][0] + " " + node["state"]["move"][1] + " " + str(node["state"]["move"][2])
     f.write(move + ", ")
@@ -150,13 +164,34 @@ def get_children(node):
             # Check the right side
             j_end = j + params["length"] - 1
             n = j_end + 1
-            while n < 6 and board[i, n] == '.' and params["fuel"] > 0:
+            if i == 2 and j_end == 5 and car != 'A':
                 params["fuel"] -= 1
-                move = [car, "right", n - j_end]
+                move = [car, "removed", 0]
                 params["position"][1] += 1
-                new_board = get_board(cars)
-                state = {"board": new_board, "cars": copy.deepcopy(cars), "move": move}
+                new_cars = copy.deepcopy(cars)
+                removed_car = new_cars.pop(car)
+                print(removed_car)
+                new_board = get_board(new_cars)
+                state = {"board": new_board, "cars": new_cars, "move": move}
                 children.append(state)
+            while n < 6 and board[i, n] == '.' and params["fuel"] > 0:
+                if i == 2 and n == 5 and car != 'A':
+                    params["fuel"] -= 1
+                    move = [car, "right", n - j_end]
+                    params["position"][1] += 1
+                    new_cars = copy.deepcopy(cars)
+                    removed_car = new_cars.pop(car)
+                    print(removed_car)
+                    new_board = get_board(new_cars)
+                    state = {"board": new_board, "cars": new_cars, "move": move}
+                    children.append(state)
+                else:
+                    params["fuel"] -= 1
+                    move = [car, "right", n - j_end]
+                    params["position"][1] += 1
+                    new_board = get_board(cars)
+                    state = {"board": new_board, "cars": copy.deepcopy(cars), "move": move}
+                    children.append(state)
                 n += 1
             params["fuel"] = fuel
             params["position"][1] = j
@@ -201,6 +236,7 @@ def get_board(cars):
             cols = [params["position"][1]] * params["length"]
             board[rows, cols] = car
     return board
+
 
 def print_board(board):
     print('   0 1 2 3 4 5')
